@@ -40,14 +40,16 @@ The command removes all the Kubernetes components associated with the chart and 
 
 The following table lists the configurable parameters and their default values.
 
-|         Parameter          |                   Description                    |                Default                |
-| -------------------------- | ------------------------------------------------ | ------------------------------------- |
+| Parameter                  | Description                                      | Default                               |
+|----------------------------|--------------------------------------------------|---------------------------------------|
 | `replicas`                 | Number of nodes                                  | `1`                                   |
 | `persistence.enabled`      | Enable persistence using PVC                     | `true`                                |
 | `persistence.storageClass` | PVC Storage Class for Matomo volume              | `nil` (uses alpha storage annotation) |
 | `persistence.accessMode`   | PVC Access Mode for Matomo volume                | `ReadWriteOnce`                       |
 | `persistence.size`         | PVC Storage Request for Matomo volume            | `10Gi`                                |
 | `persistence.path`         | Path to mount the volume at, to use other images | `/var/www/html`                       |
+| `matomo.install`           | Enable the installation wizard                   | `false`                               |
+| `matomo.secret`            | Secret with the credentials for Matomo           | ``                                    |
 
 For more information please refer to the [Matomo](https://matomo.org/docs/) documentation.
 
@@ -63,4 +65,19 @@ Alternatively, a YAML file that specifies the values for the parameters can be p
 
 ```sh
 helm install --name my-release -f ./values.yaml stable/matomo
+```
+
+## Credentials
+
+Copy the `.example.env` in the repository, filling in with your credentials:
+
+```sh
+cp ./.example.env ./.env
+vi .env
+```
+
+Then deploy the secret with
+
+```sh
+eval "`sed 's/^/export /g' ./.env`" && cat ./config/secret.generator.yaml | envsubst | kubectl apply -f -
 ```

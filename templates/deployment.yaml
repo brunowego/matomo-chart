@@ -29,6 +29,11 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.matomo.secret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.matomo.secret }}
+          {{- end }}
           ports:
             - name: fastcgi
               containerPort: 9000
@@ -81,10 +86,38 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.nginx.resources | nindent 12 }}
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          image: "{{ .Values.matomo.init.image.repository }}:{{ .Values.matomo.init.image.tag }}"
+          imagePullPolicy: {{ .Values.matomo.init.image.pullPolicy }}
+          env:
+            - name: MATOMO_UID
+              value: "{{ .Values.matomo.uid | default 82 }}"
+            - name: MATOMO_GID
+              value: "{{ .Values.matomo.gid | default 82 }}"
+            - name: MATOMO_INSTALL
+              value: "{{ .Values.matomo.install | ternary 1 0 }}"
+          {{- if .Values.matomo.secret }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.matomo.secret }}
+          {{- end }}
+          workingDir: {{ .Values.persistence.path }}
+          command: [/entrypoint.sh]
+          volumeMounts:
+            - name: matomo-volume
+              mountPath: {{ .Values.persistence.path }}
+              subPath: html
+            - name: {{ include "matomo.fullname" . }}-matomo
+              mountPath: /config/config.ini.php
+              subPath: config.ini.php
+            - name: {{ include "matomo.fullname" . }}-matomo
+              mountPath: /entrypoint.sh
+              subPath: entrypoint.sh
       volumes:
         - name: matomo-volume
           persistentVolumeClaim:
-            claimName: matomo
+            claimName: {{ include "matomo.fullname" . }}
         - name: {{ include "matomo.fullname" . }}
           configMap:
             name: {{ include "matomo.fullname" . }}
@@ -98,6 +131,16 @@ spec:
               - key: www.conf
                 path: www.conf
                 mode: 292
+        - name: {{ include "matomo.fullname" . }}-matomo
+          configMap:
+            name: {{ include "matomo.fullname" . }}-matomo
+            items:
+              - key: config.ini.php
+                path: config.ini.php
+                mode: 0644
+              - key: entrypoint.sh
+                path: entrypoint.sh
+                mode: 0755
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

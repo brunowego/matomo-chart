@@ -1,0 +1,12 @@
+{{- $defaultConfig := .Files.Get "config/config.ini.php" -}}
+{{- $config := .Values.matomo.config | default $defaultConfig -}}
+{{- $entryPoint := .Files.Get "config/entrypoint.sh" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "matomo.fullname" . }}-matomo
+  labels:
+{{ include "matomo.labels" . | indent 4 }}
+data:
+  config.ini.php: {{ toYaml $config |  indent 4 }}
+  entrypoint.sh: {{ toYaml $entryPoint | indent 4 }}
