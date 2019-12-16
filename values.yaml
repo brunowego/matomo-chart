@@ -32,7 +32,7 @@ securityContext: {}
   # runAsUser: 1000
 
 persistence:
-  enabled: true
+  enabled: false
   ## ghost data Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
   ## If set to "-", storageClassName: "", which disables dynamic provisioning
@@ -115,6 +115,11 @@ redis:
 
 mysql:
   enabled: true
+  mysqlDatabase: matomo
+  mysqlUsername: matomo
+  mysqlPassword: matomo
+  persistence:
+    enabled: false
 
 matomo:
   init:
