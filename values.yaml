@@ -116,8 +116,9 @@ redis:
 mysql:
   enabled: true
   mysqlDatabase: matomo
-  mysqlUsername: matomo
+  mysqlUser: matomo
   mysqlPassword: matomo
+  mysqlRootPassword: matomo
   persistence:
     enabled: false
 
